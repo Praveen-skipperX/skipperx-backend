@@ -7,6 +7,10 @@ import validate from '../middlewares/validate.js';
 
 const router = Router();
 
+console.log('✅ authRoutes module loaded');
+console.log('authController type:', typeof authController);
+console.log('authController.sendOTP:', typeof authController.sendOTP);
+
 /**
  * @route   POST /api/auth/send-otp
  * @desc    Send OTP to email or phone

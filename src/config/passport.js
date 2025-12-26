@@ -3,24 +3,6 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import User from '../models/User.js';
 import { normalizeEmail } from '../utils/validators.js';
 
-/**
- * Google OAuth Configuration
- * 
- * SETUP INSTRUCTIONS:
- * 1. Go to Google Cloud Console: https://console.cloud.google.com/
- * 2. Create a new project or select existing one
- * 3. Enable Google+ API
- * 4. Go to Credentials > Create Credentials > OAuth 2.0 Client ID
- * 5. Set authorized redirect URIs:
- *    - Development: http://localhost:5000/api/auth/google/callback
- *    - Production: https://yourdomain.com/api/auth/google/callback
- * 6. Copy Client ID and Client Secret
- * 7. Add to .env file:
- *    GOOGLE_CLIENT_ID=your_client_id
- *    GOOGLE_CLIENT_SECRET=your_client_secret
- *    GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
- */
-
 // Configure Google OAuth Strategy
 passport.use(
   new GoogleStrategy(

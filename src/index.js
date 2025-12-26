@@ -15,33 +15,30 @@ app.use(express.urlencoded({ extended: true }));
 // Initialize Passport for Google OAuth
 app.use(passport.initialize());
 
-// CORS middleware - Dynamic origin based on environment
+// Request logging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+// CORS middleware - Allow all origins for API
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  const frontendUrl = process.env.FRONTEND_URL;
   
-  // Build allowed origins list
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'http://localhost:5173',
-  ];
-  
-  // Add production frontend URL if available
-  if (frontendUrl) {
-    allowedOrigins.push(frontendUrl);
-  }
-  
-  if (origin && allowedOrigins.includes(origin)) {
+  // Allow all origins
+  if (origin) {
     res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
   }
   
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
   res.header('Access-Control-Allow-Credentials', 'true');
   
   // Handle preflight
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
+    return res.status(200).end();
   }
   
   next();
@@ -50,6 +47,29 @@ app.use((req, res, next) => {
 // Connect to database (serverless-friendly - reuses connection)
 connectDB().catch((err) => {
   console.error('Failed to connect to database:', err);
+});
+
+// Debug endpoint to list all routes
+app.get('/debug/routes', (req, res) => {
+  const routes = [];
+  app._router.stack.forEach((middleware) => {
+    if (middleware.route) {
+      routes.push({
+        path: middleware.route.path,
+        methods: Object.keys(middleware.route.methods)
+      });
+    } else if (middleware.name === 'router') {
+      middleware.handle.stack.forEach((handler) => {
+        if (handler.route) {
+          routes.push({
+            path: handler.route.path,
+            methods: Object.keys(handler.route.methods)
+          });
+        }
+      });
+    }
+  });
+  res.json({ success: true, routes });
 });
 
 // Routes

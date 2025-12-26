@@ -15,20 +15,26 @@ app.use(express.urlencoded({ extended: true }));
 // Initialize Passport for Google OAuth
 app.use(passport.initialize());
 
-// CORS middleware - Allow requests from frontend
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'https://skipperx.io',
-  'https://www.skipperx.io',
-  'https://skipperx-dev.vercel.app'
-];
-
+// CORS middleware - Dynamic origin based on environment
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
+  const frontendUrl = process.env.FRONTEND_URL;
+  
+  // Build allowed origins list
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+  ];
+  
+  // Add production frontend URL if available
+  if (frontendUrl) {
+    allowedOrigins.push(frontendUrl);
+  }
+  
+  if (origin && allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
   }
+  
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -41,7 +47,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Connect to database (for serverless, this will be called on each request)
+// Connect to database (serverless-friendly - reuses connection)
 connectDB().catch((err) => {
   console.error('Failed to connect to database:', err);
 });
@@ -73,7 +79,7 @@ app.get('/', (req, res) => {
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// For local development
+// For local development only - NO PORT BINDING IN PRODUCTION
 if (process.env.NODE_ENV !== 'production') {
   const PORT = config.port;
   app.listen(PORT, '0.0.0.0', () => {
@@ -83,6 +89,4 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Export for Vercel serverless
-export default app;
-
 export default app;

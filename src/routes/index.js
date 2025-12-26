@@ -8,8 +8,9 @@ const router = Router();
 router.get('/health', (req, res) => {
   res.json({
     success: true,
-    message: 'API is running',
+    message: 'Backend is live 🚀',
     timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 

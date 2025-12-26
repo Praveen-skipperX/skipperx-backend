@@ -41,7 +41,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Connect to database
+// Connect to database (for serverless, this will be called on each request)
 connectDB().catch((err) => {
   console.error('Failed to connect to database:', err);
 });
@@ -73,29 +73,16 @@ app.get('/', (req, res) => {
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Start server
-const PORT = config.port;
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = config.port;
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running in ${config.env} mode on port ${PORT}`);
+    console.log(`📍 API available at http://localhost:${PORT}/api`);
+  });
+}
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running in ${config.env} mode on port ${PORT}`);
-  console.log(`📍 API available at http://localhost:${PORT}/api`);
-  console.log(`📍 Server is listening on http://0.0.0.0:${PORT}`);
-});
-
-server.on('error', (err) => {
-  console.error('❌ Server error:', err);
-  if (err.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use`);
-    process.exit(1);
-  }
-});
-
-// Handle unhandled rejections
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Rejection:', err);
-  if (config.isProduction) {
-    process.exit(1);
-  }
-});
+// Export for Vercel serverless
+export default app;
 
 export default app;
